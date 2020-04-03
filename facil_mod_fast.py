@@ -5,9 +5,21 @@ from numba import njit, config, __version__
 from numba.extending import overload
 # module for single particle trajectories
 
-# Coarsegrain???
 
 def readCoords(filexyz, numFrames, numPart):
+	"""
+	Reads data from an xyz file
+	Args:
+		filexyz(string): name of the xyz file to read
+		numFrames (int): number of frames in file
+		numPart (int): number of particles
+	Return:
+		allCoords (list of list) for each frame a list of all 
+		particles consisting of list of all three coordinates
+		for each particle (x,y,z)
+	
+	"""
+
 	frame = -1
 	allCoords = np.zeros((numFrames,numPart,3))
 	with open(filexyz, 'r') as readFile:
@@ -31,13 +43,17 @@ def periodic_boundary(xyzArray,L):
         """     
         Makes sure that the given coordinates are inside the box of Length L (between -L/2 and L/2) 
         And applies periodic boundary conditions
+	Origin is in the middle of the box, could be an option to put it at the left later
         
-        input:
-        xyzArray: array with one xyz-coordinate
-        L = float, lenght of box
+        Args:
+        	xyzArray (array with 3 entries): array with one set of coordinates (3D)
+        	L(int):, lenght of box, square box assumed
 
-        output:
-        an xyz-coordinate array inside the box
+        Return:
+        	an xyz-coordinate array inside the box
+	Examples:
+		>>> periodic_boundary([1,3,6],10)
+		[1, 3, -4]
         """
         for dim in range(3):
                 if xyzArray[dim]>L/2 : xyzArray[dim]-=L
