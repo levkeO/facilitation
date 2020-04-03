@@ -47,7 +47,7 @@ def periodic_boundary(xyzArray,L):
         
         Args:
         	xyzArray (array with 3 entries): array with one set of coordinates (3D)
-        	L(int):, lenght of box, square box assumed
+        	L(int):, length of box, square box assumed
 
         Return:
         	an xyz-coordinate array inside the box
@@ -63,22 +63,23 @@ def periodic_boundary(xyzArray,L):
 
 @njit
 def squareDist(coords, frame1, frame2,L):
+	"""
+	Distance between two frames of one particle taking care of boundary 
+	conditions
+	Args:
+		coords (list of list): coordinates of one particle for several frames in  3d
+		frame1 (int): index of first frame to calculate distance 
+		frame2 (int): index of second frame to calculate distance 
+        	L(int):, length of box, square box assumed
+	Return:
+		squared distance (float)
+	Example:
+		dsjkldsyjdsyjkl
+	"""
 	dist = coords[frame2,:]-coords[frame1,:]
 	dist = periodic_boundary(dist,L)
 	return dist[0]**2 + dist[1]**2 + dist[2]**2
 
-#@njit
-def averageDistPos_old(allCoords, frame,tah, particle,L):
-	dist1 = allCoords[frame-tah:frame][:,particle,:]- allCoords[frame][particle,:]
-	dist2 = allCoords[frame:frame+tah][:,particle,:]- allCoords[frame][particle,:]
-	for t in range(len(dist1)):
-		dist1[t] = periodic_boundary(dist1[t],L)
-		dist2[t] = periodic_boundary(dist2[t],L)
-	average1 = dist1.mean(axis=0)#+allCoords[frame][particle,:]
-	average2 = dist2.mean(axis=0)#+allCoords[frame][particle,:]
-	distance = average2-average1
-	distance = periodic_boundary(distance,L)
-	return distance[0]**2 +distance[1]**2 + distance[2]**2
 
 @njit
 def averageDistPos(coords, start1,end1,start2,end2,reference,L):
@@ -94,26 +95,6 @@ def averageDistPos(coords, start1,end1,start2,end2,reference,L):
 	distance = periodic_boundary(distance,L)
 	return distance[0]**2 +distance[1]**2 + distance[2]**2
 
-#@njit
-def check_a(allCoords,particles,numFrames,t_a,a,L):
-	Deltat =pl.zeros([numFrames,2])
-	for frame in range(t_a,numFrames-t_a):
-		left = 0
-		right = 0
-		for t in range(t_a,0,-1):
-			distL = squareDist(allCoords,frame-t,frame,particle,L)
-			if distL <(a/2)**2:
-				left = t
-				break
-		for t in range(t_a,0,-1):
-			distR = squareDist(allCoords,frame+t,frame,particle,L)
-			if distR < (a/2)**2:
-				right= t
-				break
-		Deltat[frame,0] = frame-left
-		Deltat[frame,1] = left+right
-		
-	return Deltat
 
 
 		
