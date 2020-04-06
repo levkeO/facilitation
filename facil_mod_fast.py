@@ -1,9 +1,12 @@
+"""Module to calculate distance measures of single particle trajectories
+
+"""
+
 import pylab as pl
 import numpy as np
 import sys
 from numba import njit, config, __version__
 from numba.extending import overload
-# module for single particle trajectories
 
 
 def readCoords(filexyz, numFrames, numPart):
