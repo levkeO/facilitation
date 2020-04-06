@@ -100,4 +100,30 @@ def averageDistPos(coords, start1,end1,start2,end2,reference,L):
 
 
 
+class singlepath:
+    def __init__(self,part_coord,centre):
+        self.centre = centre
+        self.part_coord = part_coord
+        self.create()
+    def create(self):
+        self.diffs = np.sqrt([quareDist(part_coord,t,self.centre,L) for t in range(part_coord.shape[0])])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		
