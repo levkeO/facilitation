@@ -7,8 +7,8 @@ import glob
 path='/mnt/e/Simulations/Facilitation/facilitation/'
 sys.path.append(path)	
 import singPartDist as sp
-from numba import njit
-
+from numba import njit, config, __version__
+from numba.extending import overload
 
 def tanh(x,c1,t0,a,c2):
 	"""
@@ -25,7 +25,7 @@ def tanh(x,c1,t0,a,c2):
 	"""
 	return c1*np.tanh((x-t0)/a)+c2
 
-def detect(fileName, tah, a, N, L):
+def detect(fileName, tah, a, N,numFrames, L):
 	"""
 	Detects the number of excitations in the given file
 	Args:
@@ -33,6 +33,7 @@ def detect(fileName, tah, a, N, L):
 		tah (int): timescale over which to search for excitations
 		a (float): lenght scale as threshold for excitations
 		N (int): number of particles
+		numFrames (int): number of frames
 		L (float):  length of box
 	Return:
 		array of all Delta t
@@ -44,7 +45,7 @@ def detect(fileName, tah, a, N, L):
 	deltat = []
 	exPart = []
 	t0 = []
-	block = sp.readCoords(fileName,numFrames,numPart)
+	block = sp.readCoords(fileName,numFrames,N)
 	for particle in range(N):
 		p_coord = block[:,particle,:]
 		p_deltat = []
@@ -60,7 +61,7 @@ def detect(fileName, tah, a, N, L):
 					p_deltat.append(last-first) # append deltat to particle array
 					t0_temp.append(frame)
 				if len(p_deltat)>0:
-					p_t0  = t0_temp[np.argmin[p_deltat]
+					p_t0  = t0_temp[np.argmin(p_deltat)]
 					exPart.append(particle)
 					t_fit = t[t0-tah:t0+tah]
 					p_fit = p.diffs2[t0-tah:t0+tah]
@@ -71,8 +72,8 @@ def detect(fileName, tah, a, N, L):
 						print('Particle ',particle,'failed!')
 						break
 					deltat.append(fit_param[0]*2)
-            				start.append(fit_max[0][0])
-            				t0.append(fit_param[2])
+					start.append(fit_max[0][0])		
+					t0.append(fit_param[2])
 	
 	return exPart, deltat, start, t0
 					
@@ -80,8 +81,13 @@ def detect(fileName, tah, a, N, L):
 
 
 
-
-
+fileName = glob.glob('../Data/T0.5/*')
+print(fileName[0])
+rho=1.4
+N = 10002
+L  = (N/rho)**(1./3.)
+a,b,c,d = detect(fileName[0],200,0.3,N,1000,L)
+print(min(deltat),len(deltat))
 
 
 

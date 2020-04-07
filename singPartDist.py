@@ -41,7 +41,7 @@ def readCoords(filexyz, numFrames, numPart):
 	return allCoords
 
 
-@njit
+#@njit
 def periodic_boundary(xyzArray,L):
         """     
         Makes sure that the given coordinates are inside the box of Length L (between -L/2 and L/2) 
@@ -64,7 +64,7 @@ def periodic_boundary(xyzArray,L):
         return xyzArray
 
 
-@njit
+#@njit
 def squareDist(coords, frame1, frame2,L):
 	"""
 	Distance between two frames of one particle taking care of boundary 
@@ -84,7 +84,7 @@ def squareDist(coords, frame1, frame2,L):
 	return dist[0]**2 + dist[1]**2 + dist[2]**2
 
 
-@njit
+#@njit
 def averageDistPos(coords, start1,end1,start2,end2,reference,L):
 	# not sure if this is a sensible setup, probably not
 	dist1 = coords[start1:end1,:]- coords[reference,:]
