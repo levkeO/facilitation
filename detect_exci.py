@@ -50,7 +50,7 @@ def detect(fileName, tah, a, N,numFrames, L):
 	exPart = []
 	t0 = []
 	block = sp.readCoords(fileName,numFrames,N)
-	for particle in range(N):
+	for particle in range():
 		p_coord = block[:,particle,:]
 		p_deltat = []
 		t0_temp = []
@@ -87,14 +87,18 @@ def detect(fileName, tah, a, N,numFrames, L):
 
 
 allResults = pd.DataFrame()
-fileName = glob.glob('../Data/T0.5/*')
+fileName = glob.glob('../../KA21/T0.5/newRuns/T0*')
 print(fileName)
 rho=1.4
 N = 10002
 L  = (N/rho)**(1./3.)
-for fileIndex in fileName:
-	exPart,deltat,t0 = detect(fileName[fileIndex],200,0.3,N,1000,L)
+tah = 200
+a = 0.3
+numFrames = 1000
+for xyzfile in fileName:
+	print(xyzfile)
+	exPart,deltat,t0 = detect(xyzfile,tah,a,N,numFrames,L)
 	print(len(exPart))
-	allResults[fileName[fileIndex]] = pd.Series([exPart,deltat,t0], index = ['exPart','deltat','t0'])
+	allResults[xyzfile] = pd.Series([exPart,deltat,t0], index = ['exPart','deltat','t0'])
 print(allResults)
-
+allResults.to_csv('excitation_results_T0.5_tLJ0_1.csv')
