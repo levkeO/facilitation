@@ -49,8 +49,9 @@ def detect(fileName, tah, a, N,numFrames, L):
 	deltat = []
 	exPart = []
 	t0 = []
+	failcount = [0,0]
 	block = sp.readCoords(fileName,numFrames,N)
-	for particle in range():
+	for particle in range(N):
 		p_coord = block[:,particle,:]
 		p_deltat = []
 		t0_temp = []
@@ -67,10 +68,8 @@ def detect(fileName, tah, a, N,numFrames, L):
 					p_deltat.append(last-first) # append deltat to particle array
 					t0_temp.append(frame)
 			if len(p_deltat)>0:
-				print(particle)
 				p_t0  = t0_temp[np.argmin(p_deltat)]
 				p = sp.singlepath(p_coord,p_t0-tah,L)
-				exPart.append(particle)
 				t_fit = t[p_t0-tah:p_t0+tah]
 				p_fit = p.diffs[p_t0-tah:p_t0+tah]
 				spl =UnivariateSpline(t_fit,p_fit,s=0.8)
@@ -78,16 +77,21 @@ def detect(fileName, tah, a, N,numFrames, L):
 					fit_param, covar = curve_fit(mytanh,t_fit,spl(t_fit),[0.3,p_t0,tah/20,0.5], bounds = ([-np.inf,0,0,-np.inf], [np.inf,np.inf,np.inf,np.inf]))
 				except:
 					print('Particle ',particle,'failed!')
+					failCount[0] +=1
 					continue
-				deltat.append(fit_param[0]*2)
-				t0.append(fit_param[2])
-	return exPart, deltat, t0
+				if fit_param[0]*2<150:
+					exPart.append(particle)
+					deltat.append(fit_param[0]*2)
+					t0.append(fit_param[2])
+				else:
+					failCount[1]+=1
+	return exPart, deltat, t0,failCount
 					
 
 
 
 allResults = pd.DataFrame()
-fileName = glob.glob('../../KA21/T0.5/newRuns/T0*')
+fileName = glob.glob('../../KA21/T0.52/newRuns/T0*')
 print(fileName)
 rho=1.4
 N = 10002
@@ -97,8 +101,9 @@ a = 0.3
 numFrames = 1000
 for xyzfile in fileName:
 	print(xyzfile)
-	exPart,deltat,t0 = detect(xyzfile,tah,a,N,numFrames,L)
-	print(len(exPart))
-	allResults[xyzfile] = pd.Series([exPart,deltat,t0], index = ['exPart','deltat','t0'])
+	exPart,deltat,t0,failCount = detect(xyzfile,tah,a,N,numFrames,L)
+	print('In run ',xzyfile[-7:-4], 'the algorithm detected ',len(exPart) 'excitations.')
+	print('The fit failed ',failCount[0],' times and deltat was too long ',failCount[1],' times!')
+	allResults[xyzfile[-7:-4]] = pd.Series([exPart,deltat,t0], index = ['exPart','deltat','t0'])
 print(allResults)
-allResults.to_csv('excitation_results_T0.5_tLJ0_1.csv')
+allResults.to_csv('excitation_results_T0.52_tLJ01.csv')
