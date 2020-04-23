@@ -81,8 +81,8 @@ def detect(fileName, tah, a, N,numFrames, L):
 					continue
 				if fit_param[0]*2<150:
 					exPart.append(particle)
-					deltat.append(fit_param[0]*2)
-					t0.append(fit_param[2])
+					deltat.append(fit_param[2]*2)
+					t0.append(fit_param[1])
 				else:
 					failCount[1]+=1
 	return exPart, deltat, t0,failCount
