@@ -91,7 +91,7 @@ def detect(fileName, tah, a, N,numFrames, L):
 
 
 allResults = pd.DataFrame()
-fileName = glob.glob('../../KA21/T0.52/newRuns/T0*')
+fileName = glob.glob('../../T0.52/forFascilitation/newRuns/T0*')
 print(fileName)
 rho=1.4
 N = 10002
@@ -102,7 +102,7 @@ numFrames = 1000
 for xyzfile in fileName:
 	print(xyzfile)
 	exPart,deltat,t0,failCount = detect(xyzfile,tah,a,N,numFrames,L)
-	print('In run ',xzyfile[-7:-4], 'the algorithm detected ',len(exPart) 'excitations.')
+	print('In run ',xzyfile[-7:-4], 'the algorithm detected ',len(exPart), 'excitations.')
 	print('The fit failed ',failCount[0],' times and deltat was too long ',failCount[1],' times!')
 	allResults[xyzfile[-7:-4]] = pd.Series([exPart,deltat,t0], index = ['exPart','deltat','t0'])
 print(allResults)
