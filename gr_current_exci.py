@@ -85,11 +85,11 @@ def randomParticleType(frame,data):
 
 partType = 3
 
-excitations = pd.read_csv('excitation_results_T0.52_tLJ01.csv')
-partId = np.array(allResults['320'][0][1:-1].split(',')).astype(float)
-deltat = np.array(allResults['320'][1][1:-1].split(',')).astype(float)
-t0 = np.array(allResults['320'][2][1:-1].split(',')).astype(float)
-
+excitations = pd.read_csv('../excitation_results_T0.55_tLJ01.csv')
+partId = np.array(excitations['140'][0][1:-1].split(',')).astype(float)
+deltat = np.array(excitations['140'][1][1:-1].split(',')).astype(float)
+t0 = np.array(excitations['140'][2][1:-1].split(',')).astype(float)
+print(partId)
 def assignExcitation(frame,data):
 	"""
 	Randomly reassignes particle types in the same ratio as before (for chosen particle type)
@@ -102,23 +102,12 @@ def assignExcitation(frame,data):
 
 
 
-#r,gr = gr_partType(node,10,250,startFrame = 0,endFrame=500,randSel = randSel)
-#pl.plot(r,gr, label ='random')
+r,gr = gr_partType(node,10,250,startFrame = 0,endFrame=500,randSel = randSel)
 pl.rcParams.update({'font.size': 16})
-node2 = import_file(sys.argv[1]+sys.argv[2],multiple_frames=True,columns =["Particle Type", "Position.X", "Position.Y", "Position.Z"])
-data = node.compute(520)
-r,gr = gr_partType(node2,10,250,startFrame=0,endFrame=1000,partType = partType)
 pl.plot(r,gr,label = 'excited')
 pl.legend(frameon=False)
-#np.save(sys.argv[1]+"partType"+str(partType)+"_fast.npy", [r,gr])
 pl.xlabel(r'$r$')
 pl.ylabel(r'$g(r)$')
-
-#node.modifiers.append(ExpressionSelectionModifier(expression ="ParticleType==1"))
-#data = node.compute(1)
-#numType = np.count_nonzero(data.particles.selection) #why is this number not constant???
-#print('number of excited particles random',numType)
-#pl.ylim([0,2])
 pl.tight_layout()
 #pl.savefig('gr_T06.pdf')
 pl.show()
