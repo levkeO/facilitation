@@ -1,0 +1,4 @@
+*.swp
+*cache*
+*.csv
+*.npy
