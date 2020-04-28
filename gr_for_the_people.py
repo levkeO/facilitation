@@ -11,17 +11,17 @@ from ovito.modifiers import *
 import numpy as np
 import pylab as pl
 import sys
-
+import pandas as pd
 #Parameters that you might want to change:
 cut = 10		# cutoff for g(r)
 numBins = 250		# number of bins u=in g(r) calculation
 L = 19.25985167448	# length of box
-start =None		# first frame to calculate, if this is set to None it will calculate the entire trajectory
-end = None		# last frame to calculate
+start =400#None		# first frame to calculate, if this is set to None it will calculate the entire trajectory
+end =600# None		# last frame to calculate
 
 node = import_file(sys.argv[1]+sys.argv[2],multiple_frames=True,columns =["Particle Type", "Position.X", "Position.Y", "Position.Z"])
 
-def gr(node,cut,bins,partType = None,startFrame=0,endFrame=node.source.num_frames,step=1):
+def gr(node,cut,bins,partType = None,excitation=None,startFrame=0,endFrame=node.source.num_frames,step=1):
 	"""
 	Calculates the radial distribution function g(r) of one particle type or all particles (if no partType given)
 	Args: 
@@ -43,6 +43,12 @@ def gr(node,cut,bins,partType = None,startFrame=0,endFrame=node.source.num_frame
 		node.modifiers.append(SelectTypeModifier(types={partType}))
 		node.modifiers.append(InvertSelectionModifier())
 		node.modifiers.append(DeleteSelectedModifier())
+	elif excitation:
+		node.modifiers.append(exciID)
+		node.modifiers.append(ExpressionSelectionModifier(expression = 'exci ==1 '))
+		node.modifiers.append(InvertSelectionModifier())
+		node.modifiers.append(DeleteSelectedModifier())
+
 	node.modifiers.append(set_cell)
 	modifier = CoordinationAnalysisModifier(cutoff = cut, number_of_bins = bins)
 	node.modifiers.append(modifier)
@@ -59,6 +65,26 @@ def gr(node,cut,bins,partType = None,startFrame=0,endFrame=node.source.num_frame
 	r = rdf[:,0]
 	gr = rdf[:,1]
 	return r,gr
+
+
+excitations = pd.read_csv('excitation_results_T0.6_tLJ01.csv')
+partId = np.array(excitations['140'][0][1:-1].split(',')).astype(int)
+deltat = np.array(excitations['140'][1][1:-1].split(',')).astype(float)
+t0 = np.array(excitations['140'][2][1:-1].split(',')).astype(float)
+
+def exciID(frame,data):
+	"""
+	Assigns ID to every particle
+	"""
+
+	ID = np.array(range(data.particles.count))
+	exci = np.zeros(data.particles.count)
+	for  particle in partId:
+		index = np.where(partId==particle)
+		if (t0[index]-deltat[index]/2)<frame and (t0[index]+deltat[index]/2)>frame:
+			exci[particle] = 1
+	print(sum(exci))
+	data.particles_.create_property('exci', data=exci)
 
 
 def set_cell(frame, data):
@@ -81,9 +107,9 @@ else:
 	partType = None
 
 if start:
-	r,gr = gr(node,cut,numBins,partType = partType,startFrame=start,endFrame=end)
+	r,gr = gr(node,cut,numBins,excitation=1,startFrame=start,endFrame=end)
 else:
-	r,gr = gr(node,cut,numBins,partType = partType)
+	r,gr = gr(node,cut,numBins,excitation=1)
 
 #Plot and save the results
 pl.rcParams.update({'font.size': 16})
@@ -91,6 +117,6 @@ pl.plot(r,gr)
 pl.xlabel(r'$r$')
 pl.ylabel(r'$g(r)$')
 pl.tight_layout()
-pl.savefig('gr_'+sys.argv[2][:-4]+'.pdf')
+#pl.savefig('gr_'+sys.argv[2][:-4]+'.pdf')
 pl.show()
-np.save('gr_'+sys.argv[2][:-4]+'.npy',[r,gr])
+#np.save('gr_'+sys.argv[2][:-4]+'.npy',[r,gr])
