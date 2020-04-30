@@ -91,8 +91,9 @@ def detect(fileName, tah, a, N,numFrames, L):
 
 
 allResults = pd.DataFrame()
-fileName = glob.glob('../../T0.48/T0*start*.xyz')
-print(fileName)
+fileName = glob.glob(sys.argv[1])#'../../T0.48/T0*start*.xyz')
+
+
 print(len(fileName))
 rho=1.4
 N = 10002
@@ -107,4 +108,4 @@ for xyzfile in fileName:
 	print('The fit failed ',failCount[0],' times and deltat was too long ',failCount[1],' times!')
 	allResults[xyzfile[-7:-4]] = pd.Series([exPart,deltat,t0])
 print(allResults)
-allResults.to_csv('excitation_results_T0.48_tLJ01.csv')
+allResults.to_csv('excitation_results_T'+sys.argv[2]+'_tLJ01.csv')
