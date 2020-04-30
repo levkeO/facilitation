@@ -1,2 +1,4 @@
-*pycache*
+*.swp
+*cache*
 *.csv
+*.npy

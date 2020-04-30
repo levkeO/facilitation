@@ -49,7 +49,7 @@ def detect(fileName, tah, a, N,numFrames, L):
 	deltat = []
 	exPart = []
 	t0 = []
-	failcount = [0,0]
+	failCount = [0,0]
 	block = sp.readCoords(fileName,numFrames,N)
 	for particle in range(N):
 		p_coord = block[:,particle,:]
@@ -79,7 +79,7 @@ def detect(fileName, tah, a, N,numFrames, L):
 					print('Particle ',particle,'failed!')
 					failCount[0] +=1
 					continue
-				if fit_param[0]*2<150:
+				if fit_param[2]*2<150:
 					exPart.append(particle)
 					deltat.append(fit_param[2]*2)
 					t0.append(fit_param[1])
@@ -91,8 +91,9 @@ def detect(fileName, tah, a, N,numFrames, L):
 
 
 allResults = pd.DataFrame()
-fileName = glob.glob('../../T0.52/forFascilitation/newRuns/T0*')
+fileName = glob.glob('../../T0.48/T0*start*.xyz')
 print(fileName)
+print(len(fileName))
 rho=1.4
 N = 10002
 L  = (N/rho)**(1./3.)
@@ -102,8 +103,8 @@ numFrames = 1000
 for xyzfile in fileName:
 	print(xyzfile)
 	exPart,deltat,t0,failCount = detect(xyzfile,tah,a,N,numFrames,L)
-	print('In run ',xzyfile[-7:-4], 'the algorithm detected ',len(exPart), 'excitations.')
+	print('In run ',xyzfile[-7:-4], 'the algorithm detected ',len(exPart), 'excitations.')
 	print('The fit failed ',failCount[0],' times and deltat was too long ',failCount[1],' times!')
-	allResults[xyzfile[-7:-4]] = pd.Series([exPart,deltat,t0], index = ['exPart','deltat','t0'])
+	allResults[xyzfile[-7:-4]] = pd.Series([exPart,deltat,t0])
 print(allResults)
-allResults.to_csv('excitation_results_T0.52_tLJ01.csv')
+allResults.to_csv('excitation_results_T0.48_tLJ01.csv')
