@@ -79,7 +79,7 @@ def detect(fileName, tah, a, N,numFrames, L):
 					print('Particle ',particle,'failed!')
 					failCount[0] +=1
 					continue
-				if fit_param[0]*2<150:
+				if fit_param[2]*2<150:
 					exPart.append(particle)
 					deltat.append(fit_param[2]*2)
 					t0.append(fit_param[1])
@@ -91,7 +91,7 @@ def detect(fileName, tah, a, N,numFrames, L):
 
 
 allResults = pd.DataFrame()
-fileName = glob.glob('../../T0.5/forFascilitation/newRuns/T0*')
+fileName = glob.glob('../../T0.48/T0*start*.xyz')
 print(fileName)
 print(len(fileName))
 rho=1.4
@@ -107,4 +107,4 @@ for xyzfile in fileName:
 	print('The fit failed ',failCount[0],' times and deltat was too long ',failCount[1],' times!')
 	allResults[xyzfile[-7:-4]] = pd.Series([exPart,deltat,t0])
 print(allResults)
-allResults.to_csv('excitation_results_T0.5_tLJ01.csv')
+allResults.to_csv('excitation_results_T0.48_tLJ01.csv')
