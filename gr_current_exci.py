@@ -85,7 +85,7 @@ def randomParticleType(frame,data):
 
 partType = 3
 
-excitations = pd.read_csv('../excitation_results_T0.55_tLJ01.csv')
+excitations = pd.read_csv('excitation_results_T0.55_tLJ01.csv')
 partId = np.array(excitations['140'][0][1:-1].split(',')).astype(float)
 deltat = np.array(excitations['140'][1][1:-1].split(',')).astype(float)
 t0 = np.array(excitations['140'][2][1:-1].split(',')).astype(float)
@@ -102,7 +102,7 @@ def assignExcitation(frame,data):
 
 
 
-r,gr = gr_partType(node,10,250,startFrame = 0,endFrame=500,randSel = randSel)
+r,gr = gr_partType(node,10,250,startFrame = 400,endFrame=800,randSel = randSel)
 pl.rcParams.update({'font.size': 16})
 pl.plot(r,gr,label = 'excited')
 pl.legend(frameon=False)

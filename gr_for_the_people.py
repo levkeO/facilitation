@@ -19,9 +19,9 @@ L = 19.25985167448	# length of box
 start =400#None		# first frame to calculate, if this is set to None it will calculate the entire trajectory
 end =600# None		# last frame to calculate
 
-node = import_file(sys.argv[1]+sys.argv[2],multiple_frames=True,columns =["Particle Type", "Position.X", "Position.Y", "Position.Z"])
+node = import_file(sys.argv[1]+'T'+sys.argv[2]+'_N10002_NVT_step_0.1LJ_startFrame500.xyz', multiple_frames=True,columns =["Particle Type", "Position.X", "Position.Y", "Position.Z"])
 
-def gr(node,cut,bins,partType = None,excitation=None,startFrame=0,endFrame=node.source.num_frames,step=1):
+def gr_calc(node,cut,bins,partType = None,excitation=None,startFrame=0,endFrame=node.source.num_frames,step=1):
 	"""
 	Calculates the radial distribution function g(r) of one particle type or all particles (if no partType given)
 	Args: 
@@ -55,22 +55,21 @@ def gr(node,cut,bins,partType = None,excitation=None,startFrame=0,endFrame=node.
 	rdf = np.zeros((bins,2), float)
 	counted = 0
 	for frame in range(startFrame,endFrame,step):
-		if frame%10 == 0:
+		if frame%100 == 0:
 			print ('Frame: ',frame)
 		# # Compute normalized bond vectors
 		data = node.compute(frame)
-		rdf+=data.tables['coordination-rdf'].xy()
-		counted +=1
-	rdf/=counted
-	r = rdf[:,0]
-	gr = rdf[:,1]
-	return r,gr
+		if data.particles.count>1:
+			rdf+=data.tables['coordination-rdf'].xy()
+			counted +=1
+	if counted>0:
+		rdf/=counted
+		r = rdf[:,0]
+		gr = rdf[:,1]
+		return r,gr
+	else:
+		return [0],[0]
 
-
-excitations = pd.read_csv('excitation_results_T0.6_tLJ01.csv')
-partId = np.array(excitations['140'][0][1:-1].split(',')).astype(int)
-deltat = np.array(excitations['140'][1][1:-1].split(',')).astype(float)
-t0 = np.array(excitations['140'][2][1:-1].split(',')).astype(float)
 
 def exciID(frame,data):
 	"""
@@ -83,7 +82,7 @@ def exciID(frame,data):
 		index = np.where(partId==particle)
 		if (t0[index]-deltat[index]/2)<frame and (t0[index]+deltat[index]/2)>frame:
 			exci[particle] = 1
-	print(sum(exci))
+	#print(sum(exci))
 	data.particles_.create_property('exci', data=exci)
 
 
@@ -100,16 +99,32 @@ def set_cell(frame, data):
 		#set periodic boundary conditions
 		data.cell_.pbc = (True, True, True)
 
-# Check if a particle type was given:
-if len(sys.argv)==4:
-	partType = sys.argv[3]
-else:
-	partType = None
 
-if start:
-	r,gr = gr(node,cut,numBins,excitation=1,startFrame=start,endFrame=end)
-else:
-	r,gr = gr(node,cut,numBins,excitation=1)
+
+
+
+
+excitations = pd.read_csv('excitation_results_T'+sys.argv[2]+'_tLJ01.csv')
+r = np.zeros(numBins)
+gr = np.zeros(numBins)
+count=0
+for keys in ['260']:#excitations:
+	if not keys == 'Unnamed: 0':
+		node = import_file(sys.argv[1]+'T'+sys.argv[2]+'_N10002_NVT_step_0.1LJ_startFrame'+keys+'.xyz', multiple_frames=True,columns =["Particle Type", "Position.X", "Position.Y", "Position.Z"])
+		partId = np.array(excitations[keys][0][1:-1].split(',')).astype(int)
+		deltat = np.array(excitations[keys][1][1:-1].split(',')).astype(float)
+		t0 = np.array(excitations[keys][2][1:-1].split(',')).astype(float)
+		if start:
+			r_t,gr_t = gr_calc(node,cut,numBins,excitation=1,startFrame=start,endFrame=end)
+		else:
+			r_t,gr_t = gr_calc(node,cut,numBins,excitation=1)
+		r = r_t
+		if len(gr_t)>1:
+			count+=1
+			gr+=gr_t
+		gr=gr/count
+
+
 
 #Plot and save the results
 pl.rcParams.update({'font.size': 16})
@@ -119,4 +134,4 @@ pl.ylabel(r'$g(r)$')
 pl.tight_layout()
 #pl.savefig('gr_'+sys.argv[2][:-4]+'.pdf')
 pl.show()
-#np.save('gr_'+sys.argv[2][:-4]+'.npy',[r,gr])
+np.save('gr_'+sys.argv[2][:-4]+'.npy',[r,gr])
