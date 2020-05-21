@@ -6,6 +6,8 @@ from ovito.modifiers import *
 import pylab as pl
 from ovito.data import NearestNeighborFinder
 from ovito.data import CutoffNeighborFinder
+import pandas as pd
+import sys
 	
 
 
@@ -46,47 +48,33 @@ def randomParticleType(frame,data):
 
 
 
-filexyz = 'bluePlots/current_excitations_T0.55_N10002_NVT_step_0.1LJ_startFrame500_tah200.xyz'
-node=import_file(filexyz, multiple_frames = True,columns =[ "Particle Type", "Position.X", "Position.Y", "Position.Z"])
-node.modifiers.append(ClusterAnalysisModifier(cutoff = 1.3, sort_by_size = True))
-cutoff = 2
-data = node.compute(500)
-partType = 3
-node.modifiers.append(SelectTypeModifier(types={partType}))
-node.modifiers.append(InvertSelectionModifier())
-node.modifiers.append(DeleteSelectedModifier())
 
-node.modifiers.append(set_cell)
-numberP = []
-counterA = 0
-counterB = 0
-NNCount = []
-#45.75777573740388 0.9769310226098933 for T= 0.6, strange, try other frames later
-# 45.41906202723147 1.1800302571860817 for T= 0.5
-# 46.02609188882587 0.7016449234259784 for T = 0.55
-#29.99200799200799 0.7792207792207793
-for frame in range(node.source.num_frames):
-	#node.modifiers.append(randomParticleType)
-	data = node.compute(frame)
-	
-	if frame%10 ==0:
-		print('frame: ',frame)
-	if data.particles.count>1:
-		counterA_temp = countNeigh(data)
-		NNCount.append(counterA_temp/data.particles.count)
-		#print(frame,counterA_temp,data.particles.count)
-		numberP.append(data.particles.count)
-	elif data.particles.count==1:
-		NNCount.append(0)
-		numberP.append(1)
-	
 
-pl.hist(NNCount,normed = True,label = 'NN')
-NNCount=np.array(NNCount)
-numberP = np.array(numberP)
-print(sum(NNCount==0),sum(NNCount==1),sum(NNCount>1),max(NNCount))
-print(sum(numberP==0),sum(numberP==1),sum(numberP>1),max(numberP))
-pl.hist(numberP,alpha=0.5,normed=True,label='numPart')
-pl.legend(frameon=False)
-np.save('NN_T055_exCount.npy',[NNCount,numberP])
-pl.show()
+excitations = pd.read_csv('excitation_results_T'+sys.argv[2]+'_tLJ01.csv')
+for keys in excitations:
+	if not keys == 'Unnamed: 0':
+		node = import_file(sys.argv[1]+'T'+sys.argv[2]+'_N10002_NVT_step_0.1LJ_startFrame'+keys+'.xyz', multiple_frames=True,columns =["Particle Type", "Position.X", "Position.Y", "Position.Z"])
+		partId = np.array(excitations[keys][0][1:-1].split(',')).astype(int)
+		deltat = np.array(excitations[keys][1][1:-1].split(',')).astype(float)
+		t0 = np.array(excitations[keys][2][1:-1].split(',')).astype(float)
+		startFrame = (t0-deltat/2).astype(int)
+		endFrame = (t0+deltat/2).astype(int)
+		partId = partId[np.argsort(startFrame)]
+		endFrame =  endFrame[np.argsort(startFrame)]
+
+starts = []
+snakes = {}
+print(len(partId))
+counter = 0
+for index,particle in enumerate(partId):
+	if not particle in starts:
+		counter+=1
+		starts.append(particle)
+		snakes[particle] = [particle]
+		followers = list(np.where(startFrame<endFrame[index])[0])
+		for Id in followers:
+			if not Id in starts:
+				snakes[particle].append(partId[Id])
+				starts.append(partId[Id])
+print(snakes)
+print(counter)
