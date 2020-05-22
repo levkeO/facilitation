@@ -8,7 +8,8 @@ from ovito.data import NearestNeighborFinder
 from ovito.data import CutoffNeighborFinder
 import pandas as pd
 import sys
-	
+import singPartDist as sp
+
 
 
 
@@ -48,6 +49,16 @@ def randomParticleType(frame,data):
 
 
 
+def pairdist(coords,p1,p2,frame1,frame2,L):
+	"""
+	Calculates the distance between two particles in a given frame range
+	"""
+	dist = coords[frame1:frame2,p2,:]-coords[frame1:frame2,p1,:]
+	for frame in range(dist.shape[0]):
+		dist[frame,:] = sp.periodic_boundary(dist[frame,:],L)
+	return pl.sqrt(dist[:,0]**2+dist[:,1]**2+dist[:,2]**2)
+
+
 
 
 excitations = pd.read_csv('excitation_results_T'+sys.argv[2]+'_tLJ01.csv')
@@ -64,17 +75,28 @@ for keys in excitations:
 
 starts = []
 snakes = {}
+taken = []
+rho=1.4
+N = 10002
+L  = (N/rho)**(1./3.)
+numFrames = 1000
 print(len(partId))
-counter = 0
+keys ='500'
+coords=sp.readCoords(sys.argv[1]+'T'+sys.argv[2]+'_N10002_NVT_step_0.1LJ_startFrame'+keys+'.xyz',numFrames,N)
 for index,particle in enumerate(partId):
-	if not particle in starts:
-		counter+=1
+	if not particle in taken:
 		starts.append(particle)
-		snakes[particle] = [particle]
+		taken.append(particle)
+		snakes[particle] = []
 		followers = list(np.where(startFrame<endFrame[index])[0])
 		for Id in followers:
-			if not Id in starts:
-				snakes[particle].append(partId[Id])
-				starts.append(partId[Id])
-print(snakes)
-print(counter)
+			if not partId[Id] in taken:
+				dist = pairdist(coords,particle,partId[Id],startFrame[Id],endFrame[index],L)
+				if min(dist)<1.5:
+					snakes[particle].append(partId[Id])
+					starts.append(partId[Id])
+					taken.append(partId[Id])
+
+for item in snakes:
+	if len(snakes[item])>0:
+		print(item,snakes[item])
